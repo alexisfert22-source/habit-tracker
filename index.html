@@ -527,7 +527,8 @@ function renderForm(){
       <div class="quick"><button type="button" class="chip" data-q="all">Todos</button><button type="button" class="chip" data-q="wk">L–V</button><button type="button" class="chip" data-q="we">Fin de semana</button></div></div>
     <div class="field"><label class="muted" for="fTarget" style="font-size:13px">Objetivo de horas al día (opcional)</label><input id="fTarget" type="number" min="0" max="24" step="0.25" inputmode="decimal" placeholder="Sin objetivo" value="${h&&h.target?h.target:""}"></div>
     <div class="err" id="fErr"></div>
-    <div class="btns"><button class="btn primary" type="submit">${h?"Guardar cambios":"Añadir hábito"}</button><button class="btn" type="button" data-cancel>Cancelar</button></div></form>`;
+    <div class="btns"><button class="btn primary" type="submit">${h?"Guardar cambios":"Añadir hábito"}</button><button class="btn" type="button" data-cancel>Cancelar</button></div>
+    ${h?`<button type="button" class="btn" data-formdel="${h.id}" style="color:#d64545;border-color:#d64545">Borrar hábito</button>`:""}</form>`;
   $("#fName").focus();
 }
 
@@ -620,9 +621,11 @@ document.addEventListener("click",e=>{
   else if(ds.q){fDays=ds.q==="all"?[0,1,2,3,4,5,6]:ds.q==="wk"?[0,1,2,3,4]:[5,6];renderForm()}
   else if(ds.del){confirmDel=ds.del;render()}
   else if(ds.delno!=null){confirmDel=null;render()}
-  else if(ds.delok){const id=ds.delok;habits=habits.filter(h=>h.id!==id);confirmDel=null;if(editing===id)closeForm();render();toast("Hábito borrado");
-    if(db) write("habits/"+id,()=>db.doc("habits/"+id).delete())}
+  else if(ds.delok){delHabit(ds.delok)}
+  else if(ds.formdel){if(ds.armed){delHabit(ds.formdel)}else{ds.armed="1";t.textContent="Toca otra vez para borrar";t.style.background="#d64545";t.style.color="#fff"}}
 });
+function delHabit(id){habits=habits.filter(h=>h.id!==id);confirmDel=null;if(editing===id)closeForm();render();toast("Hábito borrado");
+  if(db) write("habits/"+id,()=>db.doc("habits/"+id).delete())}
 document.addEventListener("submit",e=>{
   if(e.target.id!=="hForm") return; e.preventDefault();
   const name=$("#fName").value.trim(), tv=$("#fTarget").value, target=tv===""?null:Math.max(0,Math.min(24,+tv))||null;
